@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拜客登记</title>
+    <link href="./styles/bootstrap.min.css" rel="stylesheet">
+    <style>
+    .tags{
+
+        font-size: 20px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="mt-5">medmix访客自助登记</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="company">访客公司名称:(若个人来访，请留空)</label>
+                <input class="form-control" id="company" name="company" pattern="[^\s]+" placeholder="若代表公司来访，请填写公司名称及人数；">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="name">姓名:</label>
+                    <input type="text" class="form-control" id="name" name="name" required
+                        pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请填入姓名,中英文都可以">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="visit_time">预计到访时间:(请选择，默认显示为当前时间)</label>
+                    <input type="datetime-local" class="form-control" id="visit_time" name="visit_time" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="contact">内部联系人:</label>
+                    <input type="text" class="form-control" id="contact" name="contact" required pattern="[^\s]+"
+                        minlength="2" placeholder="请填写medmix公司联系人,中英文都可以">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="phone">访客手机号:</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" required pattern="[0-9]{11}" placeholder="请填写真实11位手机号并入厂验证">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="reason">访问事由:</label>
+                <div class="tags">
+                    <span class="badge badge-primary" onclick="fillReason('商务洽谈')">商务洽谈</span>
+                    <span class="badge badge-primary" onclick="fillReason('入厂实施项目')">入厂实施项目</span>
+                    <span class="badge badge-primary" onclick="fillReason('入厂设备维保')">入厂设备维保</span>
+                    <span class="badge badge-primary" onclick="fillReason('供应商拜访')">供应商拜访</span>
+                    <span class="badge badge-primary" onclick="fillReason('面试')">面试</span>
+                </div>
+                <textarea class="form-control" id="reason" name="reason" row="3" required pattern="[^\s]+"
+                    minlength="2" placeholder="请选择上述标签或手写输入"></textarea>
+                
+            </div>
+            <div class="col-md-18 text-center">
+                <button type="submit" class="btn btn-primary btn-lg btn-block">提交</button>
+            </div>
+
+        </form>
+    </div>
+    <script>
+        // 获取当前时间
+        const now = new Date();
+
+        // 获取当前时间的ISO字符串并格式化为YYYY-MM-DDTHH:mm
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要加1
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const currentDatetime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById('visit_time').value = currentDatetime;
+
+        //document.getElementById('visit_time').setAttribute('min', currentDatetime);
+
+        let lastSubmitTime = 0;
+
+        function fillReason(reason) {
+            //document.getElementById('reason').innerText = reason;
+            document.getElementById('reason').value = reason;
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const now = Date.now();
+            if (now - lastSubmitTime < 30000) { // 控制提交间隔为30秒
+                alert('请勿频繁提交，请稍后再试。');
+                return;
+            }
+            lastSubmitTime = now;
+
+            const name = document.getElementById('name').value;
+            const visit_time = document.getElementById('visit_time').value.replace(/T/g, '  ');
+            const reason = document.getElementById('reason').value;
+            const contact = document.getElementById('contact').value;
+            const phone = document.getElementById('phone').value;
+            const company = document.getElementById('company').value;
+
+            // 发送数据到服务器
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Content-Type-Options': 'nosniff',
+                    'X-XSS-Protection': '1; mode=block'
+                },
+                body: JSON.stringify({ name, visit_time, reason, contact, phone, company })
+            }).then(response => response.json())
+                .then(data => {
+                    alert('登记成功');
+                    //window.location.href = "visitors.html";
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="./js/jquery.slim.min.js"></script>
+    <script src="./js/popper.min.js"></script>
+</body>
+
+</html>

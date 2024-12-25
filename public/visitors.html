@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访客列表</title>
+    <link href="./styles/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .custom-radio {
+            transform: scale(1.8);
+        }
+
+        input {
+            border: 0;
+            outline: none;
+        }
+
+        .custom-alert {
+            font-size: 30px;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            width: 100%;
+            text-align: center;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .keypad button {
+            font-size: 24px;
+            padding: 20px;
+        }
+
+        .visited {
+            background-color: rgb(153, 238, 153);
+
+        }
+
+        .left {
+            background-color: rgb(243, 122, 122);
+
+        }
+
+        .selected-row {
+            background-color: lightblue;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .bottom-left {
+            bottom: 10;
+            left: 20%;
+        }
+        .bottom-center {
+            bottom: 10;
+            left: 45%;
+        }
+
+        .bottom-right {
+            bottom: 10;
+            left: 70%;
+        }
+
+        .hidden-radio {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <h1>medmix访客列表</h1>
+        <table class="table table-bordered">
+            <thead class="thead-light">
+                <tr>
+                    <th class="col-md-1">选择</th>
+                    <th class="col-md-1">姓名</th>
+                    <th class="col-md-2">公司名称</th>
+                    <th class="col-md-2">到访时间</th>
+                    <th class="col-md-1">离开时间</th>
+                    <th class="col-md-4">事由</th>
+                    <th class="col-md-1">内部联系人</th>
+                    <th class="col-md-2">手机号</th>
+                </tr>
+            </thead>
+            <tbody id="visitorTable">
+                <!-- 动态生成访客信息 -->
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination" id="pagination">
+                <!-- 动态生成分页按钮 -->
+            </ul>
+        </nav>
+        <!-- <div class="col-md-18 text-center">
+            <button id="verifyButton" class="btn btn-primary btn-lg">验证手机尾号</button>
+            <button id="leaveButton" class="btn btn-danger btn-lg">离厂</button>
+        </div> -->
+
+        <div class="position-absolute bottom-left">
+            <button id="verifyButton" class="btn btn-success btn-lg">到厂访客验证</button>
+        </div>
+        <div class="position-absolute bottom-center">
+            <a href="index.html" class="btn btn-info btn-lg">访客自助登记</a>
+        </div>
+        <div class="position-absolute bottom-right">
+            <button id="leaveButton" class="btn btn-danger btn-lg">离厂安保确认</button>
+        </div>
+
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="verifyModalLabel">请输入您的手机号后6位</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="keypad">
+                        <button class="btn btn-secondary" onclick="appendDigit(1)">1</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(2)">2</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(3)">3</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(4)">4</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(5)">5</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(6)">6</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(7)">7</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(8)">8</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(9)">9</button>
+                        <button class="btn btn-secondary" onclick="appendDigit(0)">0</button>
+                        <button class="btn btn-secondary" onclick="clearDigits()">清除</button>
+                    </div>
+                    <input type="text" id="phoneInput" class="form-control mt-3" readonly>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmVerification()">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="alertContainer"></div>
+    <script src="./js/jquery-3.5.1.min.js"></script>
+    <script src="./js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+        const rowsPerPage = 9;
+        let visitorsData = [];
+
+        function fetchVisitors(page = 1) {
+            fetch('/visitors')
+                .then(response => response.json())
+                .then(data => {
+                    visitorsData = data;
+                    const tbody = document.getElementById('visitorTable');
+                    const pagination = document.getElementById('pagination');
+                    tbody.innerHTML = ''; // 清空现有内容
+                    pagination.innerHTML = ''; // 清空分页按钮
+
+                    const start = (page - 1) * rowsPerPage;
+                    const end = start + rowsPerPage;
+                    const paginatedData = data.slice(start, end);
+
+                    paginatedData.forEach(visitor => {
+                        const isDisabled = visitor.is_visited && visitor.is_left;
+                        const row = document.createElement('tr');
+                        const visitTimeClass = visitor.is_visited ? 'visited' : '';
+                        const leftTimeClass = visitor.is_left ? 'left' : '';
+
+                        row.innerHTML = `
+                            <td><input type="radio" name="visitor" value="${visitor.id}" class="custom-radio" ${isDisabled ? 'disabled' : ''}></td>
+                            <td>${visitor.name}</td>
+                            <td>${visitor.company || ''}</td>
+                            <td class="${visitTimeClass}">${visitor.visit_time}</td>
+                            <td class="${leftTimeClass}">${visitor.left_time || ''}</td>
+                            <td>${visitor.reason}</td>
+                            <td>${visitor.contact}</td>
+                            <td>${visitor.is_visited ? `<input type="text" value="${visitor.phone}" readonly>` : `<input type="text" id="phone-${visitor.id}" placeholder="验证后显示访客手机号">`}</td>  
+                        `;
+                        row.addEventListener('click', () => {
+                            document.querySelectorAll('tr').forEach(tr => tr.classList.remove('selected-row'));
+                            row.classList.add('selected-row');
+                        });
+                        tbody.appendChild(row);
+                    });
+
+                    const pageCount = Math.ceil(data.length / rowsPerPage);
+                    for (let i = 1; i <= pageCount; i++) {
+                        const li = document.createElement('li');
+                        li.className = `page-item ${i === page ? 'active' : ''}`;
+                        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                        li.addEventListener('click', () => fetchVisitors(i));
+                        pagination.appendChild(li);
+                    }
+                    addRowSelectionListeners();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('verifyResult').innerText = '获取访客数据失败';
+                });
+        }
+
+        //alert消息控制-waining
+        function showAlertWarning(message) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-warning custom-alert">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 3000);
+        }
+        //alert消息控制-success
+        function showAlertSucess(message) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-success custom-alert">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 3000);
+        }
+
+        function appendDigit(digit) {
+            const phoneInput = document.getElementById('phoneInput');
+            if (phoneInput.value.length < 6) {
+                phoneInput.value += digit;
+            }
+        }
+
+        function clearDigits() {
+            document.getElementById('phoneInput').value = '';
+        }
+
+        function confirmVerification() {
+            const phoneSuffix = document.getElementById('phoneInput').value;
+            if (phoneSuffix.length !== 6) {
+                showAlertWarning('请输入完整的6位手机号');
+                return;
+            }
+
+            $('#verifyModal').modal('hide');
+
+            fetch('/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: selectedVisitorId, phone: phoneSuffix })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlertSucess('访客手机号匹配，访客到厂');
+                        document.getElementById(`phone-${selectedVisitorId}`).value = data.phone;
+                        document.querySelector(`input[name="visitor"][value="${selectedVisitorId}"]`).disabled = true;
+                        fetchVisitors(currentPage);
+                    } else {
+                        showAlertWarning('访客手机号不匹配，请重新输入');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlertWarning('验证失败');
+                });
+        }
+        //选中行即选择id
+        function addRowSelectionListeners() {
+            const radios = document.querySelectorAll('input[name="visitor"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    radios.forEach(r => {
+                        r.closest('tr').classList.remove('selected-row');
+                        r.checked = false;
+                    });
+                    if (radio.checked) {
+                        radio.closest('tr').classList.add('selected-row');
+                        radio.checked = true;
+                    }
+                });
+            });
+            const rows = document.querySelectorAll('#visitorTable tr');
+            rows.forEach(row => {
+                row.addEventListener('click', () => {
+                    const radio = row.querySelector('input[name="visitor"]');
+                    if (radio && !radio.disabled) {
+                        radio.checked = true;
+                        radios.forEach(r => r.closest('tr').classList.remove('selected-row'));
+                        row.classList.add('selected-row');
+                    }
+                });
+            });
+        }
+
+
+
+        //验证手机号按钮事件
+        document.getElementById('verifyButton').addEventListener('click', function () {
+            const selectedVisitor = document.querySelector('input[name="visitor"]:checked');
+            if (!selectedVisitor) {
+                showAlertWarning('请选择一行数据');
+                return;
+            }
+            if (selectedVisitor.disabled) {
+                showAlertWarning('访客已离厂');
+                return;
+            }
+            selectedVisitorId = selectedVisitor.value;
+            clearDigits();
+            $('#verifyModal').modal('show');
+        });
+
+        //离厂按钮事件
+        document.getElementById('leaveButton').addEventListener('click', function () {
+            const selectedVisitor = document.querySelector('input[name="visitor"]:checked');
+            if (!selectedVisitor) {
+                showAlertWarning('请选择一行数据');
+                return;
+            }
+            const id = selectedVisitor.value;
+            const visitor = visitorsData.find(v => v.id == id);
+
+            if (!visitor.is_visited) {
+                showAlertWarning('请先验证访客手机号');
+                return;
+            }
+
+            if (confirm('确定要离厂吗？')) {
+                fetch('/leave', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id })
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlertSucess('访客已离厂');
+                            fetchVisitors(currentPage); // 重新获取访客列表
+                        } else {
+                            showAlertWarning('操作失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlertWarning('操作失败');
+                    });
+            }
+        });
+
+        // 页面加载时立即获取一次数据
+        fetchVisitors();
+    </script>
+</body>
+
+</html>
