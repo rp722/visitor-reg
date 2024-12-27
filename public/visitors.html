@@ -58,6 +58,7 @@
             bottom: 10;
             left: 20%;
         }
+
         .bottom-center {
             bottom: 10;
             left: 45%;
@@ -76,7 +77,7 @@
 
 <body>
     <div class="container-fluid">
-        <h1>medmix访客列表</h1>
+        <h1 class="text-center">medmix访客列表</h1>
         <table class="table table-bordered">
             <thead class="thead-light">
                 <tr>
@@ -362,6 +363,26 @@
 
         // 页面加载时立即获取一次数据
         fetchVisitors();
+
+
+        //window.setTimeout(function () {
+        //fetchVisitors();
+        //window.location.reload();
+        // }, 5000);
+
+        // 定义一个计数器
+        //var count = 0;
+
+        // 定义一个函数，每次调用时计数器加一
+        function repeatFunction() {
+            fetchVisitors();
+            //console.log(count++);
+        }
+
+        // 使用 setInterval 每1000毫秒（即每秒）调用一次 repeatFunction
+        setInterval(repeatFunction, 50000);
+
+
     </script>
 </body>
 
