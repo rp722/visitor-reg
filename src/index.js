@@ -15,7 +15,7 @@ const db = new sqlite3.Database(path.join(__dirname,'visitor.db'));
 
 // 创建访客表
 db.serialize(() => {
-    db.run("CREATE TABLE IF NOT EXISTS visitors (id INTEGER PRIMARY KEY, name TEXT, phone TEXT, reason TEXT, visit_time TEXT, contact TEXT)");
+    db.run("CREATE TABLE IF NOT EXISTS visitors (id INTEGER PRIMARY KEY, name TEXT, phone TEXT, reason TEXT, visit_time TEXT, contact TEXT, company TEXT, is_visited BOOLEN DEFAULT 0, is_left BOOLEN DEFAULT 0, left_time TEXT)");
 });
 
 app.post('/register', (req, res) => {
