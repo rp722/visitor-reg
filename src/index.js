@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 
-const db = new sqlite3.Database(path.join(__dirname,'visitor.db'));
+const db = new sqlite3.Database(path.join(__dirname, 'visitor.db'));
 
 
 // 创建访客表
@@ -20,24 +20,20 @@ db.serialize(() => {
 
 app.post('/register', (req, res) => {
     const { name, phone, reason, visit_time, contact, company } = req.body;
-    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function(err) {
+    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
         res.json({ message: '登记成功' });
     });
 });
-
-app.get('/visitors1', (req, res) => {
-    
-    //const today = new Date().toISOString().split('T')[0];
-    db.all("SELECT id, name, reason, visit_time, contact FROM visitors WHERE strftime('%Y-%m-%d',visit_time)>=strftime('%Y-%m-%d','now','localtime') ORDER BY visit_time LIMIT 15", (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+app.use((req, res, next) => {
+    next();
 });
+app.use((req, res) => {
+    res.status(404).send('404 Not Found');
+});
+
 
 app.get('/visitors', (req, res) => {
     //const now = new Date().toISOString();
@@ -57,9 +53,9 @@ function verifyPhone(id, phoneSuffix, callback) {
             return callback(err);
         }
         if (row) {
-            db.run("UPDATE visitors SET is_visited = 1 WHERE id = ?", [id], function(err) {
+            db.run("UPDATE visitors SET is_visited = 1 WHERE id = ?", [id], function (err) {
                 if (err) {
-                    console.error('update err',err);
+                    console.error('update err', err);
                     return callback(err);
                 }
                 callback(null, { success: true, phone: row.phone });
@@ -73,8 +69,8 @@ function verifyPhone(id, phoneSuffix, callback) {
 
 
 app.post('/verify', (req, res) => {
-    const { id,phone } = req.body;
-    verifyPhone(id,phone, (err, result) => {
+    const { id, phone } = req.body;
+    verifyPhone(id, phone, (err, result) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -85,7 +81,7 @@ app.post('/verify', (req, res) => {
 //验证删除记录
 app.post('/delete', (req, res) => {
     const { id } = req.body;
-    db.run("DELETE FROM visitors WHERE id = ?", [id], function(err) {
+    db.run("DELETE FROM visitors WHERE id = ?", [id], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -97,8 +93,8 @@ app.post('/delete', (req, res) => {
 app.post('/leave', (req, res) => {
     const { id } = req.body;
     const now = new Date();
-    const leftTime=now.toTimeString().slice(0,5);
-    db.run("UPDATE visitors SET is_left = 1, left_time = ? WHERE id = ?", [leftTime, id], function(err) {
+    const leftTime = now.toTimeString().slice(0, 5);
+    db.run("UPDATE visitors SET is_left = 1, left_time = ? WHERE id = ?", [leftTime, id], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
