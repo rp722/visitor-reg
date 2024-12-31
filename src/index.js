@@ -27,12 +27,8 @@ app.post('/register', (req, res) => {
         res.json({ message: '登记成功' });
     });
 });
-app.use((req, res, next) => {
-    next();
-});
-app.use((req, res) => {
-    res.status(404).send('404 Not Found');
-});
+
+
 
 
 app.get('/visitors', (req, res) => {
@@ -100,6 +96,14 @@ app.post('/leave', (req, res) => {
         }
         res.json({ success: true });
     });
+});
+
+
+app.use((req, res, next) => {
+    next();
+});
+app.use((req, res) => {
+    res.status(404).send('404 Not Found');
 });
 
 app.listen(3000, () => {
