@@ -19,12 +19,12 @@
         <h2 class="mt-5 text-center">medmix访客自助登记</h2>
         <form id="registerForm">
             <div class="form-group">
-                <label for="company">访客公司名称:(若个人来访，请下拉选择)</label>
+                <label for="company">访客公司名称:</label>
+                <div class="tags">
+                    <span class="badge badge-primary" onclick="fillTxt('个人访客')">个人访客</span>
+                </div>
                 <input list="companyOptions" class="form-control" id="company" name="company" required 
-                pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="若代表公司来访，请填写公司名称">
-                <datalist id="companyOptions">
-                    <option value="个人来访">
-                </datalist>
+                pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="个人访客请选择标签；公司来访请填写公司名称">
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
