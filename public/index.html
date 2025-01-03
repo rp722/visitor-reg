@@ -7,26 +7,30 @@
     <title>访客登记</title>
     <link href="./styles/bootstrap.min.css" rel="stylesheet">
     <style>
-    .tags{
+        .tags {
 
-        font-size: 20px;
-    }
+            font-size: 20px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h2 class="mt-5 text-center"  >medmix访客自助登记</h2>
+        <h2 class="mt-5 text-center">medmix访客自助登记</h2>
         <form id="registerForm">
             <div class="form-group">
-                <label for="company">访客公司名称:(若个人来访，请留空)</label>
-                <input class="form-control" id="company" name="company" pattern="[^\s]+" placeholder="若代表公司来访，请填写公司名称及人数；">
+                <label for="company">访客公司名称:(若个人来访，请下拉选择)</label>
+                <input list="companyOptions" class="form-control" id="company" name="company" required 
+                pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="若代表公司来访，请填写公司名称">
+                <datalist id="companyOptions">
+                    <option value="个人来访">
+                </datalist>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="name">姓名:</label>
                     <input type="text" class="form-control" id="name" name="name" required
-                        pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请填入姓名,中英文都可以">
+                        pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请填入姓名,仅支持中英文">
                 </div>
                 <div class="form-group col-md-6">
                     <label for="visit_time">预计到访时间:(请选择，默认显示为当前时间)</label>
@@ -36,12 +40,13 @@
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="contact">内部联系人:</label>
-                    <input type="text" class="form-control" id="contact" name="contact" required pattern="[^\s]+"
-                        minlength="2" placeholder="请填写medmix公司联系人,中英文都可以">
+                    <input type="text" class="form-control" id="contact" name="contact" required
+                        pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请填写medmix公司联系人,仅支持中英文">
                 </div>
                 <div class="form-group col-md-6">
                     <label for="phone">访客手机号:</label>
-                    <input type="tel" class="form-control" id="phone" name="phone" required pattern="[0-9]{11}" placeholder="请填写真实11位手机号并入厂验证">
+                    <input type="tel" class="form-control" id="phone" name="phone" required pattern="[0-9]{11}"
+                        placeholder="请填写真实11位手机号">
                 </div>
             </div>
             <div class="form-group">
@@ -53,9 +58,9 @@
                     <span class="badge badge-primary" onclick="fillReason('供应商拜访')">供应商拜访</span>
                     <span class="badge badge-primary" onclick="fillReason('面试')">面试</span>
                 </div>
-                <textarea class="form-control" id="reason" name="reason" row="3" required pattern="[^\s]+"
-                    minlength="2" placeholder="请选择上述标签或手写输入"></textarea>
-                
+                <input type="text" class="form-control" id="reason" name="reason" required
+                    pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请选择上述标签或输入事由,仅支持中英文"></input>
+
             </div>
             <div class="col-md-18 text-center">
                 <button type="submit" class="btn btn-primary btn-lg btn-block">提交</button>
@@ -84,6 +89,10 @@
             //document.getElementById('reason').innerText = reason;
             document.getElementById('reason').value = reason;
         }
+        function fillTxt(company) {
+            //document.getElementById('reason').innerText = reason;
+            document.getElementById('company').value = company;
+        }
 
         document.getElementById('registerForm').addEventListener('submit', function (event) {
             event.preventDefault();
@@ -100,6 +109,8 @@
             const contact = document.getElementById('contact').value;
             const phone = document.getElementById('phone').value;
             const company = document.getElementById('company').value;
+              
+          
 
             // 发送数据到服务器
             fetch('/register', {

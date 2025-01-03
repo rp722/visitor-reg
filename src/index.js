@@ -5,19 +5,35 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-
 // 提供静态文件
 app.use(express.static(path.join(__dirname, '../public')));
 
+const db = new sqlite3.Database(path.join(__dirname, 'visitor.db'), sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
+    if(err) {
+        console.error(err.message);
+    }
+    console.log('Connected to the visitor database.');
 
-const db = new sqlite3.Database(path.join(__dirname, 'visitor.db'));
+});
 
+db.run("PRAGMA key = 'medm!x@huangpinglu159';", (err) => {
+    if (err) {
+        console.error('Failed to set encryption key:', err.message);
+    } else {
+        console.log('Encryption key set successfully');
+    }
+});
 
 // 创建访客表
 db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS visitors (id INTEGER PRIMARY KEY, name TEXT, phone TEXT, reason TEXT, visit_time TEXT, contact TEXT, company TEXT, is_visited BOOLEN DEFAULT 0, is_left BOOLEN DEFAULT 0, left_time TEXT)");
 });
 
+db.serialize(() => {
+    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES ('John Doe', '12345678901', '商务洽谈', '2023-10-01 10:00:00', 'Jane Smith', 'Acme Corp')");
+});
+
+//登记访客
 app.post('/register', (req, res) => {
     const { name, phone, reason, visit_time, contact, company } = req.body;
     db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
@@ -30,7 +46,7 @@ app.post('/register', (req, res) => {
 
 
 
-
+//获取访客列表
 app.get('/visitors', (req, res) => {
     //const now = new Date().toISOString();
     db.all("SELECT id, name, company, phone, reason, visit_time, contact, is_visited, left_time,is_left FROM visitors WHERE strftime('%Y-%m-%d',visit_time)>=strftime('%Y-%m-%d','now','localtime') ORDER BY visit_time LIMIT 15", (err, rows) => {
@@ -38,6 +54,7 @@ app.get('/visitors', (req, res) => {
             return res.status(500).json({ error: err.message });
         }
         res.json(rows);
+
     });
 });
 

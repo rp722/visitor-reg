@@ -109,7 +109,25 @@
             <button id="verifyButton" class="btn btn-success btn-lg">到厂访客验证</button>
         </div>
         <div class="position-absolute bottom-center">
-            <a href="index.html" class="btn btn-info btn-lg">访客自助登记</a>
+            <table>
+                <tr>
+                    <td>
+
+                        <a href="index.html" class="btn btn-info btn-lg">访客请扫码登记</a>
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>
+                        <img src="/image/scan.jpg" alt="scan" class="img-fluid-mt-3" width="180" height="180">
+                    </td>
+                </tr>
+            </table>
+
+
+
+
         </div>
         <div class="position-absolute bottom-right">
             <button id="leaveButton" class="btn btn-danger btn-lg">离厂安保确认</button>
@@ -380,7 +398,7 @@
         }
 
         // 使用 setInterval 每1000毫秒（即每秒）调用一次 repeatFunction
-        setInterval(repeatFunction, 50000);
+        setInterval(repeatFunction, 100000);
 
 
     </script>
