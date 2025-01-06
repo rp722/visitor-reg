@@ -5,6 +5,11 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
+const fs = require('fs');
+const SSE = require('express-sse');
+const sse = new SSE();
+
+
 // 提供静态文件
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -114,11 +119,23 @@ app.post('/leave', (req, res) => {
         res.json({ success: true });
     });
 });
-
-
 app.use((req, res, next) => {
+    res.flush = () => {};  // 空函数
     next();
 });
+
+app.get('/stream', sse.init);
+   // 监视SQLite数据库文件的变化
+   const dbPath = path.join(__dirname, 'visitor.db');
+   fs.watch(dbPath, (eventType, filename) => {
+     if (filename) {
+      // console.log(`${filename} file Changed`);
+       // 发送刷新信号
+       sse.send({ action: 'refresh' });
+     }
+   });
+
+
 app.use((req, res) => {
     res.status(404).send('404 Not Found');
 });

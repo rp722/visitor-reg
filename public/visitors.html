@@ -383,6 +383,15 @@
         fetchVisitors();
 
 
+        const eventSource = new EventSource('/stream');
+
+        eventSource.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.action === 'refresh') {
+                fetchVisitors();
+            }
+        };
+
         //window.setTimeout(function () {
         //fetchVisitors();
         //window.location.reload();
@@ -392,13 +401,13 @@
         //var count = 0;
 
         // 定义一个函数，每次调用时计数器加一
-        function repeatFunction() {
-            fetchVisitors();
+        ///function repeatFunction() {
+        //    fetchVisitors();
             //console.log(count++);
-        }
+       // }
 
         // 使用 setInterval 每1000毫秒（即每秒）调用一次 repeatFunction
-        setInterval(repeatFunction, 100000);
+        //setInterval(repeatFunction, 100000);
 
 
     </script>
