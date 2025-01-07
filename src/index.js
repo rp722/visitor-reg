@@ -9,7 +9,6 @@ const fs = require('fs');
 const SSE = require('express-sse');
 const sse = new SSE();
 
-
 // 提供静态文件
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -39,16 +38,26 @@ db.serialize(() => {
 });
 
 //登记访客
+// app.post('/register', (req, res) => {
+//     const { name, phone, reason, visit_time, contact, company } = req.body;
+//     db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
+//         if (err) {
+//             return res.status(500).json({ error: err.message });
+//         }
+//         res.json({ message: '登记成功' });
+//     });
+// });
+
+
 app.post('/register', (req, res) => {
-    const { name, phone, reason, visit_time, contact, company } = req.body;
-    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
+    const { name, phone, reason, visit_time, contact, company,is_visited } = req.body;
+    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company,is_visited) VALUES (?, ?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company,is_visited], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
         res.json({ message: '登记成功' });
     });
 });
-
 
 
 //获取访客列表
