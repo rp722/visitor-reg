@@ -62,10 +62,10 @@
                     pattern="^[\u4e00-\u9fa5a-zA-Z]+$" minlength="2" placeholder="请选择上述标签或输入事由,仅支持中英文"></input>
 
             </div>
-            <div>
+            <!-- <div>
                 <input type="checkbox" id="checkbox1">
                 <label for="checkbox1">已入厂,访客在门卫室</label>
-            </div>
+            </div> -->
             <div class="col-md-18 text-center">
                 <button type="submit" class="btn btn-primary btn-lg btn-block">提交</button>
             </div>
@@ -114,12 +114,12 @@
             const phone = document.getElementById('phone').value;
             const company = document.getElementById('company').value;
 
-            if (document.getElementById('checkbox1').checked) {
+          //  if (document.getElementById('checkbox1').checked) {
                 var is_visited = '1';
-            }
-            else {
-                var is_visited = '0';
-            }
+            // }
+            // else {
+            //     var is_visited = '0';
+            // }
 
             // 发送数据到服务器
             fetch('/register', {
@@ -133,12 +133,7 @@
             }).then(response => response.json())
                 .then(data => {
                     alert('登记成功');
-                    if (document.getElementById('checkbox1').checked) {
-                        location.href = "welcomeinside.html";
-                    }
-                    else {
-                        location.href = "welcome.html";
-                    }
+                        location.href = "welcomeinside.html";               
                 })
                 .catch(error => console.error('Error:', error));
         });

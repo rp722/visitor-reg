@@ -13,7 +13,7 @@ const sse = new SSE();
 app.use(express.static(path.join(__dirname, '../public')));
 
 const db = new sqlite3.Database(path.join(__dirname, 'visitor.db'), sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-    if(err) {
+    if (err) {
         console.error(err.message);
     }
     console.log('Connected to the visitor database.');
@@ -37,21 +37,21 @@ db.serialize(() => {
     db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES ('John Doe', '12345678901', '商务洽谈', '2023-10-01 10:00:00', 'Jane Smith', 'Acme Corp')");
 });
 
-//登记访客
-// app.post('/register', (req, res) => {
-//     const { name, phone, reason, visit_time, contact, company } = req.body;
-//     db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
-//         if (err) {
-//             return res.status(500).json({ error: err.message });
-//         }
-//         res.json({ message: '登记成功' });
-//     });
-// });
+//登记外部访客
+app.post('/extregister', (req, res) => {
+    const { name, phone, reason, visit_time, contact, company } = req.body;
+    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company) VALUES (?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company], function (err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: '登记成功' });
+    });
+});
 
-
+//登记已入厂的访客
 app.post('/register', (req, res) => {
-    const { name, phone, reason, visit_time, contact, company,is_visited } = req.body;
-    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company,is_visited) VALUES (?, ?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company,is_visited], function (err) {
+    const { name, phone, reason, visit_time, contact, company, is_visited } = req.body;
+    db.run("INSERT INTO visitors (name, phone, reason, visit_time, contact, company,is_visited) VALUES (?, ?, ?, ?, ?, ?, ?)", [name, phone, reason, visit_time, contact, company, is_visited], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -129,20 +129,20 @@ app.post('/leave', (req, res) => {
     });
 });
 app.use((req, res, next) => {
-    res.flush = () => {};  // 空函数
+    res.flush = () => { };  // 空函数
     next();
 });
 
 app.get('/stream', sse.init);
-   // 监视SQLite数据库文件的变化
-   const dbPath = path.join(__dirname, 'visitor.db');
-   fs.watch(dbPath, (eventType, filename) => {
-     if (filename) {
-      // console.log(`${filename} file Changed`);
-       // 发送刷新信号
-       sse.send({ action: 'refresh' });
-     }
-   });
+// 监视SQLite数据库文件的变化
+const dbPath = path.join(__dirname, 'visitor.db');
+fs.watch(dbPath, (eventType, filename) => {
+    if (filename) {
+        // console.log(`${filename} file Changed`);
+        // 发送刷新信号
+        sse.send({ action: 'refresh' });
+    }
+});
 
 
 app.use((req, res) => {

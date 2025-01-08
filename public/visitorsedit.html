@@ -46,16 +46,7 @@
                     tbody.innerHTML = ''; // 清空现有内容
                     data.forEach(visitor => {
                         const row = document.createElement('tr');
-                        if (visitor.is_visited) {
-                            row.innerHTML = `
-                                <td><input type="radio" name="visitor" value="${visitor.id}" disabled></td>
-                                <td>${visitor.name}</td>
-                                <td>${visitor.visit_time}</td>
-                                <td>${visitor.reason}</td>
-                                <td>${visitor.contact}</td>
-                                <td><input type="text" value="${visitor.phone}" readonly></td>
-                            `;
-                        } else {
+                       
                             row.innerHTML = `
                                 <td><input type="radio" name="visitor" value="${visitor.id}"></td>
                                 <td>${visitor.name}</td>
@@ -64,7 +55,6 @@
                                 <td>${visitor.contact}</td>
                                 <td><input type="text" id="phone-${visitor.id}" placeholder="输入手机号后6位"></td>
                             `;
-                        }
                         tbody.appendChild(row);
                     });
                 })
